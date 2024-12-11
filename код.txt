@@ -1,0 +1,116 @@
+основной класс(Main переименуй на PolygonAreaApp) и вставь код ниже 
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+
+public class PolygonAreaApp {
+    public static void main(String[] args) {
+        JFrame frame = new JFrame("Polygon Area Calculator");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(400, 400);
+        frame.setLayout(new BorderLayout());
+        frame.setResizable(false);
+
+        JPanel inputPanel = new JPanel();
+        inputPanel.setLayout(new BoxLayout(inputPanel, BoxLayout.Y_AXIS));
+        inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+
+        ArrayList<JPanel> pointPanels = new ArrayList<>();
+
+        // начальные поля ввода
+        for (int i = 0; i < 3; i++) {
+            JPanel pointPanel = createPointPanel(i + 1);
+            inputPanel.add(pointPanel);
+            pointPanels.add(pointPanel);
+        }
+
+        // добавления новых точек
+        JButton addPointButton = new JButton("Добавить точку");
+        addPointButton.addActionListener(e -> {
+            JPanel pointPanel = createPointPanel(pointPanels.size() + 1);
+            inputPanel.add(pointPanel);
+            pointPanels.add(pointPanel);
+            inputPanel.revalidate();
+            inputPanel.repaint();
+        });
+
+        JButton calculateButton = new JButton("Рассчитать площадь");
+        JLabel resultLabel = new JLabel("Площадь: -", SwingConstants.CENTER);
+        resultLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+        resultLabel.setFont(new Font("Arial", Font.BOLD, 16));
+
+        calculateButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    int n = pointPanels.size();
+                    if (n < 3) {
+                        resultLabel.setText("Минимум 3 точки!");
+                        return;
+                    }
+
+                    double[] x = new double[n];
+                    double[] y = new double[n];
+
+                    for (int i = 0; i < n; i++) {
+                        JPanel pointPanel = pointPanels.get(i);
+                        JTextField xField = (JTextField) pointPanel.getComponent(1);
+                        JTextField yField = (JTextField) pointPanel.getComponent(3);
+                        x[i] = Double.parseDouble(xField.getText());
+                        y[i] = Double.parseDouble(yField.getText());
+                    }
+
+                    // вычисление площади
+                    double area = PolygonAreaCalculator.calculateArea(x, y);
+                    resultLabel.setText("Площадь: " + area);
+                } catch (Exception ex) {
+                    resultLabel.setText("Ошибка ввода!");
+                }
+            }
+        });
+
+        buttonPanel.add(addPointButton);
+        buttonPanel.add(calculateButton);
+
+        frame.add(new JScrollPane(inputPanel), BorderLayout.CENTER);
+        frame.add(buttonPanel, BorderLayout.SOUTH);
+        frame.add(resultLabel, BorderLayout.NORTH);
+
+        frame.setVisible(true);
+    }
+
+    private static JPanel createPointPanel(int pointNumber) {
+        JPanel pointPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        pointPanel.add(new JLabel("Точка " + pointNumber + ": x"));
+        JTextField xField = new JTextField(5);
+        pointPanel.add(xField);
+        pointPanel.add(new JLabel("y"));
+        JTextField yField = new JTextField(5);
+        pointPanel.add(yField);
+        return pointPanel;
+    }
+}
+
+
+добавь новый класс и назови его PolygonAreaCalculator и вставь код ниже(этот класс - по сути, внутрянка твоего приложения, в котором происходят основыне вычисления)
+
+public class PolygonAreaCalculator {
+    // метод для вычисления площади произвольного многоугольника
+    public static double calculateArea(double[] x, double[] y) {
+        int n = x.length;
+        double area = 0.0;
+
+        // формула площади Гаусса
+        for (int i = 0; i < n; i++) {
+            int next = (i + 1) % n; // следующая вершина
+            area += x[i] * y[next] - y[i] * x[next];
+        }
+        return Math.abs(area) / 2.0;
+    }
+}
+
